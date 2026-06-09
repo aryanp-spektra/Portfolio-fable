@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Aryan P. — Cloud Consultant & Systems Engineer. Azure, Kubernetes, distributed systems, SRE, platform engineering, AI/agentic systems.">
+<meta name="theme-color" content="#0a0a0a">
+<title>aryan@cloud-core:~$ — Cloud Architect / Systems Engineer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230a0a0a'/%3E%3Ctext x='5' y='22' font-family='monospace' font-size='16' fill='%2300ff41'%3E%26gt;_%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg:        #0a0a0a;
+  --bg-panel:  #0d0f0d;
+  --bg-raise:  #111511;
+  --green:     #00ff41;
+  --green-dim: #00b32e;
+  --green-soft:rgba(0, 255, 65, 0.08);
+  --green-line:#1c3a24;
+  --amber:     #ffb700;
+  --amber-dim: rgba(255, 183, 0, 0.12);
+  --red:       #ff4d4d;
+  --cyan:      #39d0ff;
+  --text:      #b8c4b8;
+  --text-dim:  #5c6b5c;
+  --text-faint:#3a463a;
+  --border:    #1d271d;
+  --mono:      'JetBrains Mono', 'Fira Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --glow:      0 0 8px rgba(0, 255, 65, 0.45);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: var(--green-dim) #0d0d0d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--green); color: #001a06; }
+
+/* Custom scrollbar (WebKit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0d0d0d; border-left: 1px solid var(--border); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--green-dim), #035c18);
+  border: 2px solid #0d0d0d;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+a { color: var(--green); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============================================================
+   CRT OVERLAYS — scanlines, vignette, flicker
+   ============================================================ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0)    0px,
+    rgba(0, 0, 0, 0)    2px,
+    rgba(0, 0, 0, 0.14) 3px,
+    rgba(0, 0, 0, 0)    4px
+  );
+  pointer-events: none;
+  z-index: 9000;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 0, 0.42) 100%);
+  pointer-events: none;
+  z-index: 9001;
+  animation: crt-flicker 9s infinite;
+}
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  91%       { opacity: 1; }
+  92%       { opacity: 0.86; }
+  93%       { opacity: 1; }
+  96%       { opacity: 0.93; }
+  97%       { opacity: 1; }
+}
+
+/* Matrix rain canvas */
+#matrix {
+  position: fixed; inset: 0;
+  z-index: 0;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.55rem 1.25rem;
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.topbar .prompt { color: var(--green); white-space: nowrap; }
+.topbar .prompt .host { color: var(--text-dim); }
+
+.topnav { display: flex; gap: 1.1rem; flex: 1; }
+.topnav a {
+  color: var(--text-dim);
+  transition: color 0.15s, text-shadow 0.15s;
+}
+.topnav a::before { content: './'; color: var(--text-faint); }
+.topnav a:hover { color: var(--green); text-shadow: var(--glow); text-decoration: none; }
+
+.sys-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  white-space: nowrap;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+.sys-status .clock { color: var(--text-faint); }
+.sys-status .label { color: var(--green); }
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green), 0 0 14px rgba(0,255,65,0.6);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%      { transform: scale(0.7); opacity: 0.55; }
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+main { position: relative; z-index: 1; }
+
+.section {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem 2rem;
+}
+
+.cmdline { font-size: 14px; margin-bottom: 0.35rem; }
+.cmdline .u  { color: var(--green); }
+.cmdline .h  { color: var(--text-dim); }
+.cmdline .c  { color: var(--text); }
+.cmdline .a  { color: var(--amber); }
+.section-note {
+  color: var(--text-faint);
+  font-size: 12.5px;
+  margin-bottom: 1.6rem;
+}
+.section-note::before { content: '# '; }
+
+/* Terminal panel chrome */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 255, 65, 0.04), 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--bg-raise);
+  border-bottom: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.panel-head .lights { display: flex; gap: 6px; }
+.panel-head .lights i {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #2a352a; border: 1px solid #3a463a;
+}
+.panel-head .lights i:nth-child(1) { background: #46221f; border-color: #6e3530; }
+.panel-head .lights i:nth-child(2) { background: #4a3a10; border-color: #6e5a1c; }
+.panel-head .lights i:nth-child(3) { background: #143d1d; border-color: #1f5e2e; }
+.panel-head .title { flex: 1; text-align: center; letter-spacing: 0.04em; }
+.panel-body { padding: 1.25rem 1.4rem; }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   1. HERO — BOOT SEQUENCE
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 5rem;
+}
+
+.boot-panel .panel-body { padding: 1rem 1.2rem; }
+#boot-log {
+  font-size: 12.5px;
+  line-height: 1.55;
+  height: 232px;
+  overflow: hidden;
+  color: var(--text-dim);
+}
+#boot-log .line { white-space: pre-wrap; word-break: break-word; }
+#boot-log .t  { color: var(--text-faint); }
+#boot-log .ok { color: var(--green); font-weight: 500; }
+#boot-log .wn { color: var(--amber); }
+#boot-log .cm { color: var(--text); }
+.boot-skip {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: right;
+  padding: 0.3rem 1.2rem 0.55rem;
+  user-select: none;
+}
+
+.hero-main {
+  margin-top: 2.2rem;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+.hero-main.on { opacity: 1; transform: none; }
+
+.ascii-name {
+  color: var(--green);
+  text-shadow: 0 0 12px rgba(0, 255, 65, 0.35);
+  font-size: clamp(5.4px, 1.55vw, 14px);
+  line-height: 1.18;
+  white-space: pre;
+  overflow-x: auto;
+  margin-bottom: 1.1rem;
+}
+
+.hero-title {
+  font-size: clamp(15px, 2.2vw, 19px);
+  color: var(--text);
+  min-height: 1.7em;
+}
+.hero-title .accent { color: var(--amber); }
+
+.hero-tag {
+  margin-top: 0.8rem;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  max-width: 640px;
+}
+.hero-tag em { color: var(--green-dim); font-style: normal; }
+
+.cursor {
+  display: inline-block;
+  width: 9px; height: 1.15em;
+  background: var(--green);
+  vertical-align: text-bottom;
+  margin-left: 3px;
+  box-shadow: var(--glow);
+  animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.8rem;
+}
+.btn {
+  display: inline-block;
+  padding: 0.55rem 1.15rem;
+  border: 1px solid var(--green-line);
+  border-radius: 4px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.btn::before { content: '$ '; color: var(--text-dim); }
+.btn:hover {
+  background: rgba(0, 255, 65, 0.16);
+  border-color: var(--green-dim);
+  box-shadow: var(--glow);
+  text-decoration: none;
+}
+.btn.amber { color: var(--amber); border-color: #4a3a10; background: var(--amber-dim); }
+.btn.amber:hover { box-shadow: 0 0 8px rgba(255, 183, 0, 0.4); border-color: var(--amber); }
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  margin-top: 2.4rem;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+.hero-meta b { color: var(--text-dim); font-weight: 500; }
+
+/* ============================================================
+   2. ABOUT — NEOFETCH PANEL
+   ============================================================ */
+.fetch-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 2.2rem;
+  align-items: start;
+}
+.fetch-logo {
+  color: var(--green);
+  font-size: clamp(7px, 1vw, 11px);
+  line-height: 1.25;
+  white-space: pre;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.25);
+  overflow-x: auto;
+}
+.fetch-rows { font-size: 13.5px; }
+.fetch-rows .row { display: flex; gap: 0.6rem; padding: 0.14rem 0; flex-wrap: wrap; }
+.fetch-rows .k { color: var(--green); min-width: 138px; font-weight: 500; }
+.fetch-rows .k::after { content: ':'; color: var(--text-faint); }
+.fetch-rows .v { color: var(--text); flex: 1; }
+.fetch-rows .v .hl { color: var(--amber); }
+.fetch-rows .sep {
+  color: var(--text-faint);
+  padding: 0.3rem 0 0.45rem;
+  letter-spacing: 0.1em;
+}
+.fetch-colors { display: flex; gap: 4px; margin-top: 0.9rem; }
+.fetch-colors i { width: 26px; height: 13px; border-radius: 2px; display: block; }
+
+.loadbars { margin-top: 1rem; font-size: 12.5px; }
+.loadbars .lb { display: flex; align-items: center; gap: 0.6rem; padding: 0.12rem 0; }
+.loadbars .lb span:first-child { color: var(--text-dim); min-width: 120px; }
+.lb-track {
+  flex: 1; height: 9px;
+  background: #101510;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.lb-fill {
+  display: block; height: 100%; width: 0;
+  background: repeating-linear-gradient(90deg, var(--green) 0 5px, transparent 5px 8px);
+  transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lb-fill.hot { background: repeating-linear-gradient(90deg, var(--amber) 0 5px, transparent 5px 8px); }
+
+/* ============================================================
+   3. SKILLS — HTOP DASHBOARD
+   ============================================================ */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.2rem;
+}
+.skill-group .panel-body { padding: 1rem 1.1rem 1.2rem; }
+.skill-group h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+  margin-bottom: 0.85rem;
+}
+.skill-group h3::before { content: '── '; color: var(--text-faint); }
+.skill-group h3::after  { content: ' ──'; color: var(--text-faint); }
+
+.skill { margin-bottom: 0.7rem; font-size: 12.5px; }
+.skill:last-child { margin-bottom: 0; }
+.skill-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.22rem;
+  color: var(--text);
+}
+.skill-label .pct { color: var(--amber); font-weight: 500; }
+.skill-bar {
+  position: relative;
+  height: 14px;
+  background: #0e120e;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.skill-bar::before, .skill-bar::after {
+  position: absolute;
+  top: 50%; transform: translateY(-52%);
+  color: var(--text-faint);
+  font-size: 11px;
+  z-index: 2;
+}
+.skill-bar::before { content: '['; left: 4px; }
+.skill-bar::after  { content: ']'; right: 4px; }
+.skill-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: repeating-linear-gradient(90deg, var(--green) 0 6px, rgba(0,0,0,0) 6px 9px);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.25) inset;
+  transition: width 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.skills-foot {
+  margin-top: 1.1rem;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.skills-foot b { color: var(--text-dim); font-weight: 500; }
+
+/* ============================================================
+   4. PROJECTS — DEPLOYMENT LOG
+   ============================================================ */
+.logfeed .panel-body { padding: 0.4rem 0; }
+
+.log-entry { border-bottom: 1px solid var(--border); }
+.log-entry:last-child { border-bottom: none; }
+
+.log-head {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  background: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.log-head:hover { background: var(--green-soft); }
+.log-ts    { color: var(--text-faint); font-size: 11.5px; }
+.log-level { color: var(--cyan); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+.log-level.warn { color: var(--amber); }
+.log-name  { color: var(--green); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  padding: 0.18rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.badge.deployed { color: var(--green);  border-color: var(--green-line); background: var(--green-soft); }
+.badge.progress { color: var(--amber);  border-color: #4a3a10;          background: var(--amber-dim);
+                  animation: badge-pulse 2s ease-in-out infinite; }
+.badge.archived { color: var(--text-dim); border-color: var(--border);  background: #101410; }
+@keyframes badge-pulse { 50% { box-shadow: 0 0 9px rgba(255, 183, 0, 0.45); } }
+
+.log-caret { color: var(--text-faint); transition: transform 0.25s; font-size: 11px; }
+.log-entry.open .log-caret { transform: rotate(90deg); color: var(--green); }
+
+.log-desc {
+  padding: 0 1.2rem 0.8rem;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.log-desc .stack { margin-top: 0.45rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.stack i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--cyan);
+  border: 1px solid #15333d;
+  background: rgba(57, 208, 255, 0.06);
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
+
+.log-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.log-entry.open .log-body { max-height: 420px; }
+.log-body-inner {
+  margin: 0 1.2rem 1rem;
+  padding: 0.9rem 1rem;
+  border-left: 2px solid var(--green-line);
+  background: #0c100c;
+  font-size: 12.5px;
+}
+.log-body-inner .dl { color: var(--text-faint); margin-bottom: 0.5rem; font-size: 11px; letter-spacing: 0.06em; }
+.log-body-inner ul { list-style: none; }
+.log-body-inner li { padding: 0.16rem 0; color: var(--text); }
+.log-body-inner li::before { content: '└─ '; color: var(--green-dim); }
+.log-body-inner li b { color: var(--amber); font-weight: 500; }
+
+.logfeed-tail {
+  padding: 0.7rem 1.2rem;
+  font-size: 12px;
+  color: var(--text-faint);
+  border-top: 1px solid var(--border);
+}
+.logfeed-tail .blink-slow { animation: blink 1.4s steps(1) infinite; color: var(--green); }
+
+/* ============================================================
+   5. ARCHITECTURE DIAGRAM
+   ============================================================ */
+.arch-wrap { overflow-x: auto; }
+.arch-svg { display: block; width: 100%; min-width: 660px; height: auto; }
+
+.arch-node rect {
+  fill: #0d120d;
+  stroke: var(--green-line);
+  stroke-width: 1.2;
+  rx: 5;
+}
+.arch-node:hover rect { stroke: var(--green); filter: drop-shadow(0 0 6px rgba(0,255,65,0.5)); }
+.arch-node text { font-family: var(--mono); }
+.n-title { fill: var(--green); font-size: 12px; font-weight: 700; }
+.n-sub   { fill: #5c6b5c; font-size: 9.5px; }
+.n-stat  { fill: var(--amber); font-size: 9px; }
+
+.arch-link {
+  stroke: var(--green-line);
+  stroke-width: 1.4;
+  fill: none;
+  stroke-dasharray: 5 5;
+  animation: dashflow 1.4s linear infinite;
+}
+@keyframes dashflow { to { stroke-dashoffset: -10; } }
+
+.flow-dot   { fill: var(--green); filter: drop-shadow(0 0 4px var(--green)); }
+.flow-dot.r { fill: var(--amber); filter: drop-shadow(0 0 4px var(--amber)); }
+
+.lat { fill: #3a463a; font-size: 9px; font-family: var(--mono); }
+
+.arch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  padding: 0.7rem 1.2rem;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.arch-legend i {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: baseline;
+}
+.arch-legend .lg-req i { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.arch-legend .lg-res i { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+.arch-legend .lg-asy i { background: var(--cyan);  box-shadow: 0 0 5px var(--cyan); }
+.flow-dot.a { fill: var(--cyan); filter: drop-shadow(0 0 4px var(--cyan)); }
+
+.arch-notes {
+  margin-top: 1.1rem;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  max-width: 760px;
+}
+.arch-notes b { color: var(--green); font-weight: 500; }
+
+/* ============================================================
+   6. CONTACT — TCP HANDSHAKE
+   ============================================================ */
+.hs-log { font-size: 13px; }
+.hs-line {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  padding: 0.12rem 0;
+  color: var(--text-dim);
+}
+.hs-line.show { opacity: 1; transform: none; }
+.hs-line .t   { color: var(--text-faint); }
+.hs-line .syn { color: var(--amber); font-weight: 700; }
+.hs-line .ack { color: var(--green); font-weight: 700; }
+.hs-line.est  { color: var(--green); font-weight: 700; letter-spacing: 0.04em; text-shadow: var(--glow); }
+
+.contact-links { margin-top: 1.3rem; display: grid; gap: 0.55rem; }
+.clink {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.65rem 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #0c100c;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s ease, transform 0.45s ease,
+              border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+.clink.show { opacity: 1; transform: none; }
+.clink:hover {
+  border-color: var(--green-dim);
+  background: var(--green-soft);
+  box-shadow: var(--glow);
+  text-decoration: none;
+}
+.clink .proto { color: var(--amber); font-size: 11px; font-weight: 700; letter-spacing: 0.07em; }
+.clink .addr  { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clink .port  { color: var(--text-faint); font-size: 11px; }
+.clink:hover .addr { color: var(--green); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  position: relative; z-index: 1;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 2.2rem;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 2rem;
+  justify-content: space-between;
+}
+footer .hint { color: #2e382e; }
+footer .hint code { color: var(--text-dim); }
+
+/* ============================================================
+   SUDO EASTER EGG OVERLAY
+   ============================================================ */
+.sudo-overlay {
+  position: fixed; inset: 0;
+  z-index: 9500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 2, 0.82);
+  backdrop-filter: blur(3px);
+  padding: 1.5rem;
+}
+.sudo-overlay.on { display: flex; animation: sudo-in 0.2s ease; }
+@keyframes sudo-in { from { opacity: 0; } }
+.sudo-box {
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 0 0 1px rgba(255, 77, 77, 0.18), 0 30px 80px rgba(0,0,0,0.8);
+}
+.sudo-box .panel-body { font-size: 13px; line-height: 1.75; }
+.sudo-box .rd { color: var(--red); }
+.sudo-box .gr { color: var(--green); }
+.sudo-box .am { color: var(--amber); }
+.sudo-box .dm { color: var(--text-dim); }
+.sudo-close {
+  margin-top: 1rem;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 860px) {
+  .topnav a:nth-child(n+5) { display: none; }
+  .fetch-grid { grid-template-columns: 1fr; }
+  .fetch-logo { display: none; }
+}
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  .section { padding-top: 4.2rem; }
+  .topbar { gap: 0.8rem; padding: 0.5rem 0.8rem; }
+  .topnav { gap: 0.7rem; }
+  .topnav a:nth-child(n+4) { display: none; }
+  .sys-status .clock { display: none; }
+  #boot-log { height: 196px; font-size: 11px; }
+  .log-head { grid-template-columns: 1fr auto auto; row-gap: 0.15rem; }
+  .log-ts { grid-column: 1 / -1; order: -1; }
+  .log-level { display: none; }
+  .clink { grid-template-columns: 1fr auto; }
+  .clink .proto { grid-column: 1 / -1; }
+  .fetch-rows .k { min-width: 112px; }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrix" aria-hidden="true"></canvas>
+
+<!-- ============================ TOP BAR ============================ -->
+<header class="topbar">
+  <span class="prompt">aryan@cloud-core<span class="host">:~$</span></span>
+  <nav class="topnav" aria-label="Sections">
+    <a href="#about">about</a>
+    <a href="#skills">skills</a>
+    <a href="#projects">projects</a>
+    <a href="#architecture">arch</a>
+    <a href="#contact">contact</a>
+  </nav>
+  <div class="sys-status" role="status">
+    <span class="clock" id="utc-clock">--:--:-- UTC</span>
+    <span class="dot" aria-hidden="true"></span>
+    <span class="label">SYSTEM&nbsp;STATUS:&nbsp;ONLINE</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================ 1. HERO ============================ -->
+<section class="section hero" id="top">
+  <div class="panel boot-panel">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">/var/log/boot.log — cloud-core</span>
+      <span>tty1</span>
+    </div>
+    <div class="panel-body">
+      <div id="boot-log" aria-live="off"></div>
+    </div>
+    <div class="boot-skip" id="boot-skip">press any key to skip boot ▸</div>
+  </div>
+
+  <div class="hero-main" id="hero-main">
+    <pre class="ascii-name" aria-label="ARYAN">
+ █████╗ ██████╗ ██╗   ██╗ █████╗ ███╗   ██╗    ██████╗
+██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗████╗  ██║    ██╔══██╗
+███████║██████╔╝ ╚████╔╝ ███████║██╔██╗ ██║    ██████╔╝
+██╔══██║██╔══██╗  ╚██╔╝  ██╔══██║██║╚██╗██║    ██╔═══╝ ██╗
+██║  ██║██║  ██║   ██║   ██║  ██║██║ ╚████║    ██║     ╚═╝
+╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝    ╚═╝</pre>
+
+    <p class="hero-title"><span id="typed-title"></span><span class="cursor" aria-hidden="true"></span></p>
+
+    <p class="hero-tag">
+      I think in systems — <em>bottlenecks</em>, <em>scale</em>, <em>reliability</em>,
+      <em>latency</em>, <em>failure modes</em>. Currently compiling toward
+      <span style="color:var(--amber)">world-class Cloud Architect</span>; build in progress.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn" href="#projects">tail -f deployments.log</a>
+      <a class="btn amber" href="#contact">ssh aryan@contact</a>
+    </div>
+
+    <div class="hero-meta">
+      <span><b>REGION:</b> India / IST (UTC+5:30)</span>
+      <span><b>FOCUS:</b> Azure · K8s · Distributed Systems</span>
+      <span><b>MODE:</b> always shipping</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 2. ABOUT ============================ -->
+<section class="section" id="about">
+  <p class="cmdline reveal"><span class="u">aryan@cloud-core</span><span class="h">:~$</span> <span class="c">neofetch</span> <span class="a">--profile</span></p>
+  <p class="section-note reveal">system identity &amp; runtime characteristics</p>
+
+  <div class="panel reveal">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">neofetch — aryan@cloud-core</span>
+      <span>bash</span>
+    </div>
+    <div class="panel-body">
+      <div class="fetch-grid">
+        <pre class="fetch-logo" aria-hidden="true">
+        .--~~~~~~--.
+     .-~  ░░░░░░░░  ~-.
+   .~   ▒▒▒▒▒▒▒▒▒▒▒▒   ~.
+  /   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   \
+ |   ████ AZURE CLOUD ████  |
+  \   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   /
+   `~.  ▒▒▒▒▒▒▒▒▒▒▒▒  .~'
+      `--..______..--'
+        ││  ││  ││
+     ┌──┴┴──┴┴──┴┴──┐
+     │ ▣ ▣ ▣  k8s  ▣ │
+     │ ▣ ▣ ▣ nodes ▣ │
+     └───────────────┘</pre>
+
+        <div class="fetch-rows">
+          <div class="row"><span class="k">User</span><span class="v">aryan@cloud-core</span></div>
+          <div class="row"><span class="k">Role</span><span class="v">Cloud Consultant &amp; Systems Engineer</span></div>
+          <div class="row"><span class="k">OS</span><span class="v">Linux x86_64 / Azure Cloud (multi-region)</span></div>
+          <div class="row"><span class="k">Kernel</span><span class="v">distributed-systems 6.x — SMP PREEMPT</span></div>
+          <div class="row"><span class="k">Uptime</span><span class="v" id="uptime">calculating…</span></div>
+          <div class="row"><span class="k">Shell</span><span class="v">bash + kubectl + az + terraform</span></div>
+          <div class="row"><span class="k">Location</span><span class="v">India <span class="hl">(IST / UTC+5:30)</span></span></div>
+          <div class="row"><span class="k">Specialization</span><span class="v">Distributed Systems · Platform Engineering · SRE</span></div>
+          <div class="row"><span class="k">Packages</span><span class="v">azure, kubernetes, terraform, otel, agents (+∞ installing)</span></div>
+          <div class="row"><span class="k">Resolution</span><span class="v">sees systems end-to-end — request to disk and back</span></div>
+          <div class="row"><span class="k">Failure Mode</span><span class="v">degrades gracefully; retries with exponential backoff</span></div>
+          <div class="row"><span class="k">Status</span><span class="v"><span class="hl">BUILDING → world-class Cloud Architect</span></span></div>
+
+          <div class="sep">───────── load average ─────────</div>
+          <div class="loadbars">
+            <div class="lb"><span>curiosity</span><span class="lb-track"><span class="lb-fill" data-w="97"></span></span><span class="hl" style="color:var(--amber)">0.97</span></div>
+            <div class="lb"><span>ambition</span><span class="lb-track"><span class="lb-fill hot" data-w="99"></span></span><span style="color:var(--amber)">0.99</span></div>
+            <div class="lb"><span>caffeine</span><span class="lb-track"><span class="lb-fill" data-w="78"></span></span><span style="color:var(--amber)">0.78</span></div>
+            <div class="lb"><span>tolerance_for_snowflake_servers</span><span class="lb-track"><span class="lb-fill" data-w="4"></span></span><span style="color:var(--amber)">0.04</span></div>
+          </div>
+
+          <div class="fetch-colors" aria-hidden="true">
+            <i style="background:#00ff41"></i><i style="background:#00b32e"></i>
+            <i style="background:#ffb700"></i><i style="background:#39d0ff"></i>
+            <i style="background:#ff4d4d"></i><i style="background:#b8c4b8"></i>
+            <i style="background:#5c6b5c"></i><i style="background:#1d271d"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 3. SKILLS ============================ -->
+<section class="section" id="skills">
+  <p class="cmdline reveal"><span class="u">aryan@cloud-core</span><span class="h">:~$</span> <span class="c">htop</span> <span class="a">--sort-key=PROFICIENCY</span></p>
+  <p class="section-note reveal">live capability metrics — sampled continuously, trending up</p>
+
+  <div class="skills-grid">
+
+    <div class="panel skill-group reveal">
+      <div class="panel-body">
+        <h3>CLOUD / AZURE</h3>
+        <div class="skill"><div class="skill-label"><span>Azure Architecture &amp; Landing Zones</span><span class="pct" data-target="92">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="92"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>AKS / Managed Kubernetes</span><span class="pct" data-target="90">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="90"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Networking, VNet &amp; Private Link</span><span class="pct" data-target="88">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="88"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Serverless / Functions / Event Grid</span><span class="pct" data-target="85">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="85"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Cost Optimization &amp; FinOps</span><span class="pct" data-target="83">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="83"></span></div></div>
+      </div>
+    </div>
+
+    <div class="panel skill-group reveal">
+      <div class="panel-body">
+        <h3>SYSTEMS &amp; INFRA</h3>
+        <div class="skill"><div class="skill-label"><span>Linux Internals &amp; Tuning</span><span class="pct" data-target="93">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="93"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Terraform / Infrastructure as Code</span><span class="pct" data-target="91">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="91"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Kubernetes (operators, CRDs, scheduling)</span><span class="pct" data-target="90">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="90"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>TCP/IP, DNS &amp; Load Balancing</span><span class="pct" data-target="87">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="87"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Performance &amp; Capacity Planning</span><span class="pct" data-target="84">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="84"></span></div></div>
+      </div>
+    </div>
+
+    <div class="panel skill-group reveal">
+      <div class="panel-body">
+        <h3>DEVOPS &amp; SRE</h3>
+        <div class="skill"><div class="skill-label"><span>CI/CD (GitHub Actions, Azure DevOps)</span><span class="pct" data-target="90">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="90"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Incident Response &amp; On-call</span><span class="pct" data-target="89">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="89"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Observability (Prometheus, Grafana, OTel)</span><span class="pct" data-target="88">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="88"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>GitOps (Argo CD, Flux)</span><span class="pct" data-target="86">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="86"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>SLOs, Error Budgets &amp; Chaos Testing</span><span class="pct" data-target="82">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="82"></span></div></div>
+      </div>
+    </div>
+
+    <div class="panel skill-group reveal">
+      <div class="panel-body">
+        <h3>DISTRIBUTED SYSTEMS</h3>
+        <div class="skill"><div class="skill-label"><span>Event-Driven Architecture</span><span class="pct" data-target="88">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="88"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Message Queues (Service Bus, Kafka)</span><span class="pct" data-target="87">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="87"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Caching &amp; Data Consistency</span><span class="pct" data-target="86">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="86"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Resilience Patterns (CB, bulkhead, retry)</span><span class="pct" data-target="85">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="85"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Consensus &amp; Replication (Raft, quorum)</span><span class="pct" data-target="79">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="79"></span></div></div>
+      </div>
+    </div>
+
+    <div class="panel skill-group reveal">
+      <div class="panel-body">
+        <h3>AI &amp; AUTOMATION</h3>
+        <div class="skill"><div class="skill-label"><span>Python Automation &amp; Tooling</span><span class="pct" data-target="90">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="90"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>Agentic Systems &amp; Orchestration</span><span class="pct" data-target="85">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="85"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>LLM Integration (RAG, tool use, evals)</span><span class="pct" data-target="84">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="84"></span></div></div>
+        <div class="skill"><div class="skill-label"><span>AIOps / Intelligent Runbooks</span><span class="pct" data-target="80">0%</span></div><div class="skill-bar"><span class="skill-fill" data-level="80"></span></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="skills-foot reveal"><b>NOTE:</b> metrics are self-reported and aggressively benchmarked against production incidents. No bar ever reads 100% — the day it does, I've stopped learning.</p>
+</section>
+
+<!-- ============================ 4. PROJECTS ============================ -->
+<section class="section" id="projects">
+  <p class="cmdline reveal"><span class="u">aryan@cloud-core</span><span class="h">:~$</span> <span class="c">tail -f</span> <span class="a">/var/log/deployments.log</span></p>
+  <p class="section-note reveal">production deployment history — click any entry to expand the log detail view</p>
+
+  <div class="panel logfeed reveal">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">deployments.log — streaming</span>
+      <span>follow</span>
+    </div>
+    <div class="panel-body">
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2026-03-18T02:47:11Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">multi-region-azure-failover</span>
+          <span class="badge deployed">DEPLOYED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Designed multi-region Azure failover architecture with active-passive topology, Front Door routing and automated regional health-based cutover.
+          <div class="stack"><i>Azure Front Door</i><i>Traffic Manager</i><i>AKS</i><i>Azure SQL geo-replica</i><i>Terraform</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>RTO cut from <b>~45 min (manual)</b> to <b>&lt; 4 min</b> automated cutover via health-probe-driven failover.</li>
+            <li>Geo-replicated state tier with forced-failover runbooks; RPO held under <b>5 seconds</b> in game-day drills.</li>
+            <li>Entire topology codified in Terraform modules — both regions rebuildable from scratch in one apply.</li>
+            <li>Quarterly chaos drills: region blackhole simulated, failover verified, findings fed back into runbooks.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2026-01-29T14:03:52Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">k8s-cert-rotation-operator</span>
+          <span class="badge deployed">DEPLOYED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Built a Kubernetes operator for automated certificate rotation across service mesh and ingress, eliminating expiry-related incidents.
+          <div class="stack"><i>Go</i><i>controller-runtime</i><i>cert-manager</i><i>Azure Key Vault</i><i>AKS</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Custom CRD + reconcile loop watches cert expiry windows and rotates with zero-downtime rolling restarts.</li>
+            <li>Private keys never leave Azure Key Vault — operator syncs via CSI driver, no secrets in etcd plaintext.</li>
+            <li>Certificate-expiry incident count after rollout: <b>0</b>. Previous year: 3 (including one at 2 AM).</li>
+            <li>Prometheus metrics + alert rules expose rotation lag as an SLO, not a surprise.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2025-11-07T09:21:38Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">otel-distributed-tracing</span>
+          <span class="badge deployed">DEPLOYED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Implemented distributed tracing pipeline with OpenTelemetry across 30+ microservices — collector fleet, tail sampling, Grafana Tempo backend.
+          <div class="stack"><i>OpenTelemetry</i><i>Grafana Tempo</i><i>Prometheus</i><i>Loki</i><i>Helm</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Tail-based sampling keeps 100% of error traces while storing only <b>~8%</b> of total volume.</li>
+            <li>Exemplars wire p99 latency panels directly to the traces that caused them — MTTR down <b>~40%</b>.</li>
+            <li>Auto-instrumentation rolled out via mutating webhook; teams onboarded with zero code changes.</li>
+            <li>Collector fleet autoscales on queue depth; survived a 12x traffic spike without dropping spans.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2025-08-23T17:45:09Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">gitops-platform-landing-zones</span>
+          <span class="badge deployed">DEPLOYED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Built an internal developer platform: Terraform landing zones + Argo CD GitOps, taking new-service provisioning from days to minutes.
+          <div class="stack"><i>Terraform</i><i>Argo CD</i><i>Azure Policy</i><i>GitHub Actions</i><i>OPA</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Golden-path templates: one PR provisions repo, pipeline, namespace, DNS, secrets and dashboards.</li>
+            <li>Policy-as-code guardrails (Azure Policy + OPA) enforce network, identity and cost rules at plan time.</li>
+            <li>Service onboarding time: <b>3–4 days → ~20 minutes</b>. Drift detection runs on every sync cycle.</li>
+            <li>100% of production infra reconciled from Git — no portal-clicked resources survive the night.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2025-06-12T11:58:27Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">keda-event-driven-autoscaling</span>
+          <span class="badge deployed">DEPLOYED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Implemented event-driven autoscaling with KEDA against Azure Service Bus queue depth — scale-to-zero workers, burst-safe consumers.
+          <div class="stack"><i>KEDA</i><i>Azure Service Bus</i><i>AKS</i><i>.NET workers</i><i>Bicep</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Workers scale 0 → 60 pods on queue-depth signal; idle-hours compute cost reduced <b>~70%</b>.</li>
+            <li>Backpressure modeled explicitly: prefetch, lock duration and max-replica ceilings tuned per consumer.</li>
+            <li>Poison-message handling with dead-letter alerting — no silent message loss, ever.</li>
+            <li>Load-tested to 50k msg/min sustained with p95 end-to-end processing latency under 900ms.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2026-05-30T08:14:55Z</span>
+          <span class="log-level warn">WARN</span>
+          <span class="log-name">aiops-agentic-runbooks</span>
+          <span class="badge progress">IN PROGRESS</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Building an agentic incident-response system: LLM agents that triage alerts, query telemetry, and execute approved runbook steps with human-in-the-loop gates.
+          <div class="stack"><i>Python</i><i>Claude API</i><i>MCP</i><i>Grafana API</i><i>Azure Functions</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Agents correlate alerts against traces/logs/metrics and draft an incident hypothesis before a human joins.</li>
+            <li>Every action is tool-gated and allow-listed; destructive steps require explicit operator approval.</li>
+            <li>Early results: first-responder context-gathering time down from ~10 min to <b>under 60 seconds</b>.</li>
+            <li>Next milestone: post-incident review drafts generated from the full agent action transcript.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <article class="log-entry">
+        <button class="log-head" aria-expanded="false">
+          <span class="log-ts">2024-12-04T21:32:40Z</span>
+          <span class="log-level">INFO</span>
+          <span class="log-name">chaos-engineering-harness</span>
+          <span class="badge archived">ARCHIVED</span>
+          <span class="log-caret">▸</span>
+        </button>
+        <div class="log-desc">
+          Built a chaos engineering harness injecting latency, pod kills and DNS failures into staging — superseded by managed chaos tooling, lessons kept.
+          <div class="stack"><i>Chaos Mesh</i><i>Litmus</i><i>k6</i><i>Grafana</i></div>
+        </div>
+        <div class="log-body"><div class="log-body-inner">
+          <p class="dl">── DETAIL ──────────────────────────────</p>
+          <ul>
+            <li>Weekly automated experiments: pod kill, network partition, disk pressure, dependency latency injection.</li>
+            <li>Surfaced 11 latent failure modes pre-production, including a retry storm that would have cascaded.</li>
+            <li>Findings hardened default Helm charts: sane timeouts, circuit breakers, and PDBs became defaults.</li>
+            <li>Archived in favor of Azure Chaos Studio — the experiments live on, the duct tape retired with honor.</li>
+          </ul>
+        </div></div>
+      </article>
+
+      <div class="logfeed-tail">
+        <span class="blink-slow">▌</span> waiting for next deployment… (there is always a next deployment)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 5. ARCHITECTURE ============================ -->
+<section class="section" id="architecture">
+  <p class="cmdline reveal"><span class="u">aryan@cloud-core</span><span class="h">:~$</span> <span class="c">cat</span> <span class="a">reference-architecture.svg</span> <span class="c">| render --live-traffic</span></p>
+  <p class="section-note reveal">how I think about request paths — an Azure-flavored reference topology with live flow</p>
+
+  <div class="panel reveal">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">reference-architecture — live traffic view</span>
+      <span>svg</span>
+    </div>
+    <div class="panel-body arch-wrap">
+      <svg class="arch-svg" viewBox="0 0 920 440" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="Animated cloud architecture diagram: clients flow through a load balancer to an AKS app tier, which talks to a Redis cache, an Azure SQL database, and publishes to a Service Bus queue consumed by workers.">
+
+        <!-- ── link paths ───────────────────────────── -->
+        <path id="p-in"  class="arch-link" d="M130,200 L200,200"/>
+        <path id="p-lb"  class="arch-link" d="M330,200 L410,200"/>
+        <path id="p-ca"  class="arch-link" d="M560,170 C620,170 600,90 650,90"/>
+        <path id="p-db"  class="arch-link" d="M560,215 L650,215"/>
+        <path id="p-q"   class="arch-link" d="M485,260 L485,330"/>
+        <path id="p-w"   class="arch-link" d="M560,360 L650,360"/>
+        <path id="p-wdb" class="arch-link" d="M715,330 L715,245"/>
+
+        <!-- ── latency annotations ──────────────────── -->
+        <text class="lat" x="138" y="190">~9ms</text>
+        <text class="lat" x="346" y="190">p99 12ms</text>
+        <text class="lat" x="600" y="118">hit 94%</text>
+        <text class="lat" x="578" y="207">p99 4ms</text>
+        <text class="lat" x="494" y="300">async</text>
+        <text class="lat" x="578" y="352">drain</text>
+
+        <!-- ── nodes ────────────────────────────────── -->
+        <g class="arch-node">
+          <rect x="20" y="170" width="110" height="60"/>
+          <text class="n-title" x="75" y="195" text-anchor="middle">CLIENTS</text>
+          <text class="n-sub"   x="75" y="211" text-anchor="middle">internet · TLS 1.3</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="200" y="170" width="130" height="60"/>
+          <text class="n-title" x="265" y="190" text-anchor="middle">FRONT DOOR</text>
+          <text class="n-sub"   x="265" y="205" text-anchor="middle">L7 LB · WAF · CDN</text>
+          <text class="n-stat"  x="265" y="220" text-anchor="middle">▲ healthy 2/2</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="410" y="140" width="150" height="120"/>
+          <text class="n-title" x="485" y="165" text-anchor="middle">APP TIER</text>
+          <text class="n-sub"   x="485" y="181" text-anchor="middle">AKS · 3 zones</text>
+          <text class="n-sub"   x="485" y="196" text-anchor="middle">HPA 6→24 pods</text>
+          <text class="n-stat"  x="485" y="216" text-anchor="middle">cpu 41% · mem 58%</text>
+          <text class="n-sub"   x="485" y="238" text-anchor="middle">mTLS mesh</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="650" y="60" width="130" height="60"/>
+          <text class="n-title" x="715" y="83" text-anchor="middle">CACHE</text>
+          <text class="n-sub"   x="715" y="98" text-anchor="middle">Azure Redis · LRU</text>
+          <text class="n-stat"  x="715" y="111" text-anchor="middle">94% hit ratio</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="650" y="185" width="130" height="60"/>
+          <text class="n-title" x="715" y="208" text-anchor="middle">DATABASE</text>
+          <text class="n-sub"   x="715" y="223" text-anchor="middle">Azure SQL · HA pair</text>
+          <text class="n-stat"  x="715" y="236" text-anchor="middle">geo-replica: sync</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="410" y="330" width="150" height="60"/>
+          <text class="n-title" x="485" y="353" text-anchor="middle">MESSAGE QUEUE</text>
+          <text class="n-sub"   x="485" y="368" text-anchor="middle">Service Bus · DLQ on</text>
+          <text class="n-stat"  x="485" y="381" text-anchor="middle">depth: 17 msgs</text>
+        </g>
+
+        <g class="arch-node">
+          <rect x="650" y="330" width="130" height="60"/>
+          <text class="n-title" x="715" y="353" text-anchor="middle">WORKERS</text>
+          <text class="n-sub"   x="715" y="368" text-anchor="middle">KEDA 0→60 pods</text>
+          <text class="n-stat"  x="715" y="381" text-anchor="middle">scale-to-zero</text>
+        </g>
+
+        <!-- ── request dots (green, forward) ─────────── -->
+        <circle class="flow-dot" r="3.2"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath xlink:href="#p-in" href="#p-in"/></animateMotion></circle>
+        <circle class="flow-dot" r="3.2"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite"><mpath xlink:href="#p-in" href="#p-in"/></animateMotion></circle>
+        <circle class="flow-dot" r="3.2"><animateMotion dur="1.7s" begin="0.3s" repeatCount="indefinite"><mpath xlink:href="#p-lb" href="#p-lb"/></animateMotion></circle>
+        <circle class="flow-dot" r="3.2"><animateMotion dur="1.7s" begin="1.15s" repeatCount="indefinite"><mpath xlink:href="#p-lb" href="#p-lb"/></animateMotion></circle>
+        <circle class="flow-dot" r="3"><animateMotion dur="2.1s" begin="0.5s" repeatCount="indefinite"><mpath xlink:href="#p-ca" href="#p-ca"/></animateMotion></circle>
+        <circle class="flow-dot" r="3"><animateMotion dur="1.9s" begin="1s" repeatCount="indefinite"><mpath xlink:href="#p-db" href="#p-db"/></animateMotion></circle>
+
+        <!-- ── response dots (amber, reverse) ────────── -->
+        <circle class="flow-dot r" r="2.6"><animateMotion dur="1.8s" begin="0.9s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath xlink:href="#p-lb" href="#p-lb"/></animateMotion></circle>
+        <circle class="flow-dot r" r="2.6"><animateMotion dur="1.8s" begin="1.5s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath xlink:href="#p-in" href="#p-in"/></animateMotion></circle>
+        <circle class="flow-dot r" r="2.4"><animateMotion dur="2.2s" begin="1.6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath xlink:href="#p-ca" href="#p-ca"/></animateMotion></circle>
+
+        <!-- ── async dots (cyan, queue path) ─────────── -->
+        <circle class="flow-dot a" r="2.8"><animateMotion dur="2.4s" repeatCount="indefinite"><mpath xlink:href="#p-q" href="#p-q"/></animateMotion></circle>
+        <circle class="flow-dot a" r="2.8"><animateMotion dur="2.2s" begin="0.7s" repeatCount="indefinite"><mpath xlink:href="#p-w" href="#p-w"/></animateMotion></circle>
+        <circle class="flow-dot a" r="2.8"><animateMotion dur="2.3s" begin="1.4s" repeatCount="indefinite"><mpath xlink:href="#p-wdb" href="#p-wdb"/></animateMotion></circle>
+      </svg>
+    </div>
+    <div class="arch-legend">
+      <span class="lg-req"><i></i>request path (sync)</span>
+      <span class="lg-res"><i></i>response path</span>
+      <span class="lg-asy"><i></i>async / event-driven</span>
+    </div>
+  </div>
+
+  <p class="arch-notes reveal">
+    Every hop here is a deliberate decision: <b>Front Door</b> terminates TLS at the edge and absorbs the WAF cost
+    before traffic touches compute. The <b>cache</b> sits beside the app tier because a 94% hit ratio is the
+    cheapest database you'll ever buy. Writes that don't need to block the user go through the
+    <b>queue</b> — backpressure becomes a metric instead of an outage. And the <b>workers</b> scale to zero,
+    because idle compute is just money on fire with extra steps.
+  </p>
+</section>
+
+<!-- ============================ 6. CONTACT ============================ -->
+<section class="section" id="contact">
+  <p class="cmdline reveal"><span class="u">aryan@cloud-core</span><span class="h">:~$</span> <span class="c">ssh</span> <span class="a">-v guest@aryan.dev</span></p>
+  <p class="section-note reveal">establishing connection — three-way handshake in progress</p>
+
+  <div class="panel reveal" id="handshake-panel">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">tcpdump — port 22</span>
+      <span>live</span>
+    </div>
+    <div class="panel-body">
+      <div class="hs-log" aria-live="polite">
+        <p class="hs-line"><span class="t">14:02:11.000341</span> IP you.local &gt; aryan.dev.22: Flags <span class="syn">[SYN]</span>, seq 1337, win 64240</p>
+        <p class="hs-line"><span class="t">14:02:11.000389</span> IP aryan.dev.22 &gt; you.local: Flags <span class="syn">[SYN</span>, <span class="ack">ACK]</span>, seq 4242, ack 1338</p>
+        <p class="hs-line"><span class="t">14:02:11.000412</span> IP you.local &gt; aryan.dev.22: Flags <span class="ack">[ACK]</span>, ack 4243, win 64240</p>
+        <p class="hs-line est">★ CONNECTION ESTABLISHED — channels open, latency nominal:</p>
+      </div>
+
+      <div class="contact-links">
+        <a class="clink" href="https://github.com/aryanp-spektra" target="_blank" rel="noopener noreferrer">
+          <span class="proto">GIT/SSH</span>
+          <span class="addr">github.com/aryanp-spektra</span>
+          <span class="port">:22 ESTABLISHED</span>
+        </a>
+        <a class="clink" href="https://www.linkedin.com/in/aryanp" target="_blank" rel="noopener noreferrer">
+          <span class="proto">HTTPS</span>
+          <span class="addr">linkedin.com/in/aryanp</span>
+          <span class="port">:443 ESTABLISHED</span>
+        </a>
+        <a class="clink" href="mailto:aryanmp2003@gmail.com">
+          <span class="proto">SMTP</span>
+          <span class="addr">aryanmp2003@gmail.com</span>
+          <span class="port">:587 ESTABLISHED</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer>
+  <span>© <span id="yr">2026</span> aryan@cloud-core — built with vanilla HTML/CSS/JS. zero frameworks, zero downtime.</span>
+  <span class="hint">psst — try typing <code>sudo</code></span>
+</footer>
+
+<!-- ============================ SUDO OVERLAY ============================ -->
+<div class="sudo-overlay" id="sudo-overlay" role="dialog" aria-modal="true" aria-label="sudo easter egg">
+  <div class="panel sudo-box">
+    <div class="panel-head">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="title">sudo — permission denied</span>
+      <span>tty0</span>
+    </div>
+    <div class="panel-body">
+      <p><span class="gr">visitor@cloud-core</span><span class="dm">:~$</span> sudo make_me_a_world_class_architect</p>
+      <p class="dm">[sudo] password for visitor: ••••••••</p>
+      <p class="rd">visitor is not in the sudoers file.</p>
+      <p class="rd">This incident will be reported… to /dev/null.</p>
+      <p>&nbsp;</p>
+      <p class="dm">Nice try though. Around here, root access is earned the</p>
+      <p class="dm">old-fashioned way: <span class="am">on-call rotations, postmortems, and
+      an unhealthy relationship with YAML.</span></p>
+      <p>&nbsp;</p>
+      <p><span class="gr">HINT:</span> <span class="dm">try</span> <span class="am">ssh aryan@contact</span> <span class="dm">instead — that port is open.</span></p>
+      <p class="sudo-close">[ press ESC or click anywhere to close ]</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ============================================================
+     UTC CLOCK
+     ============================================================ */
+  var clockEl = document.getElementById('utc-clock');
+  function tickClock() {
+    var d = new Date();
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    clockEl.textContent = p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + ' UTC';
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ============================================================
+     UPTIME (career clock — adjust CAREER_START as needed)
+     ============================================================ */
+  var CAREER_START = new Date('2022-07-01T00:00:00Z');
+  function renderUptime() {
+    var ms = Date.now() - CAREER_START.getTime();
+    var days = Math.floor(ms / 86400000);
+    var years = Math.floor(days / 365);
+    var rem = days - years * 365;
+    var hrs = Math.floor((ms % 86400000) / 3600000);
+    document.getElementById('uptime').textContent =
+      years + ' years, ' + rem + ' days, ' + hrs + ' hours — no unplanned downtime';
+  }
+  renderUptime();
+  setInterval(renderUptime, 60000);
+
+  /* ============================================================
+     MATRIX RAIN — lightweight canvas background
+     ============================================================ */
+  var canvas = document.getElementById('matrix');
+  var ctx = canvas.getContext('2d');
+  var CHARS = '01アイウエオカキクケコサシスセソ$#@&%{}<>/\\|=+*';
+  var FONT = 14;
+  var drops = [];
+  var rainTimer = null;
+
+  function sizeMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var cols = Math.floor(canvas.width / FONT);
+    drops = new Array(cols).fill(0).map(function () {
+      return Math.floor(Math.random() * canvas.height / FONT);
+    });
+  }
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.12)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = FONT + 'px monospace';
+    for (var i = 0; i < drops.length; i++) {
+      // Skip ~60% of columns each frame to keep the rain sparse and cheap
+      if (Math.random() > 0.4) continue;
+      var ch = CHARS.charAt(Math.floor(Math.random() * CHARS.length));
+      ctx.fillStyle = Math.random() > 0.975 ? '#9cffb4' : '#00ff41';
+      ctx.fillText(ch, i * FONT, drops[i] * FONT);
+      drops[i] = (drops[i] * FONT > canvas.height && Math.random() > 0.97) ? 0 : drops[i] + 1;
+    }
+  }
+
+  function startRain() {
+    if (REDUCED || rainTimer) return;
+    rainTimer = setInterval(drawMatrix, 80);
+  }
+  function stopRain() {
+    clearInterval(rainTimer);
+    rainTimer = null;
+  }
+
+  sizeMatrix();
+  startRain();
+  window.addEventListener('resize', sizeMatrix);
+  document.addEventListener('visibilitychange', function () {
+    document.hidden ? stopRain() : startRain();
+  });
+
+  /* ============================================================
+     HERO — BOOT SEQUENCE
+     ============================================================ */
+  var BOOT_LINES = [
+    ['t', '[    0.000000] ', '', 'BIOS-provided physical RAM map: ambition=unbounded'],
+    ['t', '[    0.000412] ', '', 'Linux version 6.8.0-aryan (gcc 13.2.0) #1 SMP PREEMPT'],
+    ['t', '[    0.001337] ', '', 'Command line: BOOT_IMAGE=/vmlinuz-portfolio root=/dev/cloud rw quiet'],
+    ['t', '[    0.004207] ', '', 'Memory: 64G available (distributed across 3 regions)'],
+    ['t', '[    0.008844] ', '', 'CPU: all cores pinned to problem-solving, governor=performance'],
+    ['t', '[    0.013370] ', '', 'ACPI: reliability subsystem enabled, failure_modes=catalogued'],
+    ['t', '[    0.021094] ', 'ok', 'systemd[1]: Starting Azure Resource Manager...'],
+    ['t', '[    0.034512] ', 'ok', 'systemd[1]: Starting Kubernetes control plane...'],
+    ['t', '[    0.046228] ', 'ok', 'systemd[1]: Mounting /dev/distributed-systems...'],
+    ['t', '[    0.058871] ', 'ok', 'systemd[1]: Starting observability stack (otel, prom, grafana)...'],
+    ['t', '[    0.072343] ', 'wn', 'systemd[1]: imposter-syndrome.service masked — proceeding anyway'],
+    ['t', '[    0.089660] ', 'ok', 'systemd[1]: Loading SRE mindset module...'],
+    ['t', '[    0.104015] ', 'ok', 'systemd[1]: Spawning AI agents (4 workers, tool-gated)...'],
+    ['t', '[    0.118400] ', '', 'Reached target: Portfolio Interface'],
+    ['cm', '', '', 'aryan@cloud-core:~$ ./init_portfolio.sh --mode=production']
+  ];
+
+  var bootLog = document.getElementById('boot-log');
+  var heroMain = document.getElementById('hero-main');
+  var bootSkipEl = document.getElementById('boot-skip');
+  var bootDone = false;
+  var bootIdx = 0;
+  var bootTimeout = null;
+
+  function appendBootLine(spec) {
+    var div = document.createElement('div');
+    div.className = 'line';
+    if (spec[0] === 'cm') {
+      div.innerHTML = '<span class="cm"></span>';
+      div.firstChild.textContent = spec[3];
+    } else {
+      var ts = document.createElement('span');
+      ts.className = 't';
+      ts.textContent = spec[1];
+      div.appendChild(ts);
+      div.appendChild(document.createTextNode(spec[3] + (spec[2] ? '  ' : '')));
+      if (spec[2] === 'ok') {
+        var ok = document.createElement('span');
+        ok.className = 'ok';
+        ok.textContent = '[ OK ]';
+        div.appendChild(ok);
+      } else if (spec[2] === 'wn') {
+        var wn = document.createElement('span');
+        wn.className = 'wn';
+        wn.textContent = '[WARN]';
+        div.appendChild(wn);
+      }
+    }
+    bootLog.appendChild(div);
+    // keep last lines visible inside the fixed-height log box
+    while (bootLog.children.length > 13) bootLog.removeChild(bootLog.firstChild);
+  }
+
+  function finishBoot() {
+    if (bootDone) return;
+    bootDone = true;
+    clearTimeout(bootTimeout);
+    while (bootIdx < BOOT_LINES.length) appendBootLine(BOOT_LINES[bootIdx++]);
+    bootSkipEl.style.visibility = 'hidden';
+    heroMain.classList.add('on');
+    typeTitle();
+  }
+
+  function bootStep() {
+    if (bootIdx >= BOOT_LINES.length) { finishBoot(); return; }
+    appendBootLine(BOOT_LINES[bootIdx]);
+    // the final shell command gets a dramatic pause before the hero resolves
+    var delay = (bootIdx === BOOT_LINES.length - 1) ? 520 : 90 + Math.random() * 160;
+    bootIdx++;
+    bootTimeout = setTimeout(bootStep, delay);
+  }
+
+  /* Typewriter for the hero title */
+  var TITLE = 'Cloud Consultant  ·  Systems Engineer  ·  Distributed Systems';
+  var titleEl = document.getElementById('typed-title');
+  var titleTyped = false;
+  function typeTitle() {
+    if (titleTyped) return;
+    titleTyped = true;
+    if (REDUCED) { titleEl.textContent = TITLE; return; }
+    var i = 0;
+    (function step() {
+      if (i <= TITLE.length) {
+        titleEl.textContent = TITLE.slice(0, i++);
+        setTimeout(step, 24 + Math.random() * 30);
+      }
+    })();
+  }
+
+  if (REDUCED) {
+    finishBoot();
+  } else {
+    setTimeout(bootStep, 300);
+    document.addEventListener('keydown', function onSkip() {
+      finishBoot();
+      document.removeEventListener('keydown', onSkip);
+    });
+    bootSkipEl.addEventListener('click', finishBoot);
+  }
+
+  /* ============================================================
+     SCROLL REVEAL — Intersection Observer
+     ============================================================ */
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(function (el) {
+    revealObserver.observe(el);
+  });
+
+  /* ============================================================
+     SKILL BARS + COUNTERS
+     ============================================================ */
+  function animateCounter(el, target, duration) {
+    if (REDUCED) { el.textContent = target + '%'; return; }
+    var start = performance.now();
+    (function frame(now) {
+      var t = Math.min((now - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - t, 3); // ease-out cubic, matches the bar curve
+      el.textContent = Math.round(eased * target) + '%';
+      if (t < 1) requestAnimationFrame(frame);
+    })(start);
+  }
+
+  var skillObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.querySelectorAll('.skill-fill').forEach(function (fill, i) {
+        setTimeout(function () {
+          fill.style.width = fill.dataset.level + '%';
+        }, i * 110);
+      });
+      e.target.querySelectorAll('.pct').forEach(function (pct, i) {
+        setTimeout(function () {
+          animateCounter(pct, parseInt(pct.dataset.target, 10), 1500);
+        }, i * 110);
+      });
+      skillObserver.unobserve(e.target);
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.skill-group').forEach(function (g) {
+    skillObserver.observe(g);
+  });
+
+  /* About-section load average bars share the same trigger pattern */
+  var loadObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.querySelectorAll('.lb-fill').forEach(function (fill, i) {
+        setTimeout(function () { fill.style.width = fill.dataset.w + '%'; }, 200 + i * 130);
+      });
+      loadObserver.unobserve(e.target);
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.loadbars').forEach(function (el) { loadObserver.observe(el); });
+
+  /* ============================================================
+     PROJECT LOG — expandable entries
+     ============================================================ */
+  document.querySelectorAll('.log-head').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var entry = btn.closest('.log-entry');
+      var open = entry.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+
+  /* ============================================================
+     CONTACT — TCP handshake sequence
+     ============================================================ */
+  var hsObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      hsObserver.unobserve(e.target);
+      var lines = e.target.querySelectorAll('.hs-line');
+      var links = e.target.querySelectorAll('.clink');
+      var base = REDUCED ? 0 : 450;
+      lines.forEach(function (line, i) {
+        setTimeout(function () { line.classList.add('show'); }, i * base + 200);
+      });
+      links.forEach(function (link, i) {
+        setTimeout(function () { link.classList.add('show'); },
+          lines.length * base + 350 + i * (REDUCED ? 0 : 180));
+      });
+    });
+  }, { threshold: 0.35 });
+  hsObserver.observe(document.getElementById('handshake-panel'));
+
+  /* ============================================================
+     EASTER EGG — type "sudo"
+     ============================================================ */
+  var sudoOverlay = document.getElementById('sudo-overlay');
+  var keyBuffer = '';
+
+  document.addEventListener('keydown', function (e) {
+    if (sudoOverlay.classList.contains('on')) {
+      if (e.key === 'Escape') sudoOverlay.classList.remove('on');
+      return;
+    }
+    if (e.key.length === 1) {
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-4);
+      if (keyBuffer === 'sudo') {
+        sudoOverlay.classList.add('on');
+        keyBuffer = '';
+      }
+    }
+  });
+  sudoOverlay.addEventListener('click', function () {
+    sudoOverlay.classList.remove('on');
+  });
+
+})();
+</script>
+</body>
+</html>
